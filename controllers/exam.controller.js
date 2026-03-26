@@ -33,38 +33,38 @@ class ExamController {
 
             if (!course_id || !title) {
                 return res.status(400).json({
-                    message: "course_id and title are required",
+                    message: "Mã khóa học (course_id) và tiêu đề (title) là bắt buộc.",
                 });
             }
 
             const course = await Course.findByPk(course_id);
             if (!course) {
                 return res.status(404).json({
-                    message: "Course not found",
+                    message: "Khóa học không tìm thấy",
                 });
             }
 
             if (start_at && end_at && new Date(start_at) > new Date(end_at)) {
                 return res.status(400).json({
-                    message: "start_at must be earlier than end_at",
+                    message: "Thời gian bắt đầu phải sớm hơn thời gian kết thúc",
                 });
             }
 
             if (duration_minutes !== undefined && duration_minutes <= 0) {
                 return res.status(400).json({
-                    message: "duration_minutes must be greater than 0",
+                    message: "Thời lượng thi phải lớn hơn 0",
                 });
             }
 
             if (max_attempts !== undefined && max_attempts <= 0) {
                 return res.status(400).json({
-                    message: "max_attempts must be greater than 0",
+                    message: "Số lần thi tối đa phải lớn hơn 0",
                 });
             }
 
             if (pass_score !== undefined && (pass_score < 0 || pass_score > 100)) {
                 return res.status(400).json({
-                    message: "pass_score must be between 0 and 100",
+                    message: "Điểm qua phải nằm trong khoảng từ 0 đến 100",
                 });
             }
 
@@ -86,13 +86,13 @@ class ExamController {
             });
 
             return res.status(201).json({
-                message: "Create exam success",
+                message: "Tạo đề thi thành công",
                 exam,
             });
         } catch (error) {
             console.log("Error creating exam:", error);
             return res.status(500).json({
-                message: "Server error",
+                message: "Lỗi máy chủ",
                 error: error.message,
             });
         }
@@ -130,7 +130,7 @@ class ExamController {
             });
 
             return res.status(200).json({
-                message: "Get exams success",
+                message: "Lấy đề thi thành công",
                 exams,
                 pagination: {
                     currentPage: page,
@@ -142,7 +142,7 @@ class ExamController {
         } catch (error) {
             console.log("Error fetching exams:", error);
             return res.status(500).json({
-                message: "Server error",
+                message: "Lỗi máy chủ",
                 error: error.message,
             });
         }
@@ -178,18 +178,18 @@ class ExamController {
 
             if (!exam) {
                 return res.status(404).json({
-                    message: "Exam not found",
+                    message: "Đề thi không tìm thấy",
                 });
             }
 
             return res.status(200).json({
-                message: "Get exam success",
+                message: "Lấy đề thi thành công",
                 exam,
             });
         } catch (error) {
             console.log("Error fetching exam by id:", error);
             return res.status(500).json({
-                message: "Server error",
+                message: "Lỗi máy chủ",
                 error: error.message,
             });
         }
@@ -202,7 +202,7 @@ class ExamController {
 
             if (!exam) {
                 return res.status(404).json({
-                    message: "Exam not found",
+                    message: "Đề thi không tìm thấy",
                 });
             }
 
@@ -225,12 +225,12 @@ class ExamController {
             });
 
             return res.status(200).json({
-                message: "Update exam success",
+                message: "Cập nhật đề thi thành công",
                 exam,
             });
         } catch (error) {
             return res.status(500).json({
-                message: "Server error",
+                message: "Lỗi máy chủ",
                 error: error.message,
             });
         }
@@ -251,7 +251,7 @@ class ExamController {
             if (!exam) {
                 await t.rollback();
                 return res.status(404).json({
-                    message: "Exam not found",
+                    message: "Đề thi không tìm thấy",
                 });
             }
             await exam.update(
@@ -260,12 +260,12 @@ class ExamController {
             );
             await t.commit();
             return res.status(200).json({
-                message: "Delete exam success",
+                message: "Xóa đề thi thành công",
             });
         } catch (error) {
             await t.rollback();
             return res.status(500).json({
-                message: "Server error",
+                message: "Lỗi máy chủ",
                 error: error.message,
             });
         }
@@ -281,13 +281,13 @@ class ExamController {
             });
 
             return res.status(200).json({
-                message: "Get exams by course success",
+                message: "Lấy đề thi theo khóa học thành công",
                 exams,
             });
         } catch (error) {
             console.log("Error fetching exams by course id:", error);
             return res.status(500).json({
-                message: "Server error",
+                message: "Lỗi máy chủ",
                 error: error.message,
             });
         }
@@ -304,14 +304,14 @@ class ExamController {
             if (!exam) {
                 await t.rollback();
                 return res.status(404).json({
-                    message: "Exam not found",
+                    message: "Đề thi không tìm thấy",
                 });
             }
 
             if (!Array.isArray(questions) || questions.length === 0) {
                 await t.rollback();
                 return res.status(400).json({
-                    message: "questions is required",
+                    message: "Câu hỏi là bắt buộc",
                 });
             }
 
@@ -323,7 +323,7 @@ class ExamController {
                 if (!question) {
                     await t.rollback();
                     return res.status(404).json({
-                        message: `Question not found: ${item.question_id}`,
+                        message: `Câu hỏi không tìm thấy: ${item.question_id}`,
                     });
                 }
 
@@ -349,13 +349,13 @@ class ExamController {
             }
             await t.commit();
             return res.status(200).json({
-                message: "Add questions to exam success",
+                message: "Thêm câu hỏi vào đề thi thành công",
             });
         } catch (error) {
             console.log("Error adding questions to exam:", error);
             await t.rollback();
             return res.status(500).json({
-                message: "Server error",
+                message: "Lỗi máy chủ",
                 error: error.message,
             });
         }
@@ -374,17 +374,17 @@ class ExamController {
 
             if (!deleted) {
                 return res.status(404).json({
-                    message: "Question not found in exam",
+                    message: "Câu hỏi không tìm thấy trong đề thi",
                 });
             }
 
             return res.status(200).json({
-                message: "Remove question from exam success",
+                message: "Xóa câu hỏi khỏi đề thi thành công",
             });
         } catch (error) {
             console.log("Error removing question from exam:", error);
             return res.status(500).json({
-                message: "Server error",
+                message: "Lỗi máy chủ",
                 error: error.message,
             });
         }
@@ -416,13 +416,13 @@ class ExamController {
 
             if (!exam) {
                 return res.status(404).json({
-                    message: "Exam not found",
+                    message: "Đề thi không tìm thấy",
                 });
             }
 
             if (exam.IsActive === false) {
                 return res.status(400).json({
-                    message: "Exam is inactive",
+                    message: "Đề thi không hoạt động",
                 });
             }
 
@@ -437,14 +437,14 @@ class ExamController {
             });
 
             return res.status(201).json({
-                message: "Start exam success",
+                message: "Bắt đầu đề thi thành công",
                 attempt,
                 exam,
             });
         } catch (error) {
             console.error("Error starting exam:", error);
             return res.status(500).json({
-                message: "Server error",
+                message: "Lỗi máy chủ",
                 error: error.message,
             });
         }
@@ -460,7 +460,7 @@ class ExamController {
             if (!attempt_id || !Array.isArray(answers)) {
                 await t.rollback();
                 return res.status(400).json({
-                    message: "attempt_id and answers are required",
+                    message: "Câu trả lời là bắt buộc",
                 });
             }
             const attempt = await ExamAttempt.findOne({
@@ -476,7 +476,7 @@ class ExamController {
             if (!attempt) {
                 await t.rollback();
                 return res.status(404).json({
-                    message: "Attempt not found or already submitted",
+                    message: "Attempt không tìm thấy hoặc đã được gửi",
                 });
             }
             await AttemptAnswer.destroy({
@@ -544,7 +544,7 @@ class ExamController {
 
             await t.commit();
             return res.status(200).json({
-                message: "Submit exam success",
+                message: "Submit exam thành công",
                 result: {
                     attempt_id,
                     score,
@@ -556,7 +556,7 @@ class ExamController {
             console.log("Error submitting exam:", error);
             await t.rollback();
             return res.status(500).json({
-                message: "Server error",
+                message: "Lỗi máy chủ",
                 error: error.message,
             });
         }
@@ -599,18 +599,18 @@ class ExamController {
 
             if (!attempt) {
                 return res.status(404).json({
-                    message: "Attempt not found",
+                    message: "Không tìm thấy kết quả thi",
                 });
             }
 
             return res.status(200).json({
-                message: "Get attempt result success",
+                message: "Lấy kết quả thi thành công",
                 attempt,
             });
         } catch (error) {
             console.error("Error fetching attempt result:", error);
             return res.status(500).json({
-                message: "Server error",
+                message: "Lỗi máy chủ",
                 error: error.message,
             });
         }

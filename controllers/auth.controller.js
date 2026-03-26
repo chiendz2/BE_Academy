@@ -43,7 +43,7 @@ class AuthController {
             if (!username || !email || !password) {
                 await transaction.rollback();
                 return res.status(400).json({
-                    message: "username, email and password are required",
+                    message: "Tên người dùng, email và mật khẩu là bắt buộc",
                 });
             }
 
@@ -54,7 +54,7 @@ class AuthController {
             if (existingUserByEmail) {
                 await transaction.rollback();
                 return res.status(400).json({
-                    message: "Email already exists",
+                    message: "Email đã tồn tại",
                 });
             }
 
@@ -65,7 +65,7 @@ class AuthController {
             if (existingUserByUsername) {
                 await transaction.rollback();
                 return res.status(400).json({
-                    message: "Username already exists",
+                    message: "Tên người dùng đã tồn tại",
                 });
             }
 
@@ -94,7 +94,7 @@ class AuthController {
             await transaction.commit();
 
             return res.status(201).json({
-                message: "register success, please verify otp sent to email",
+                message: "Đăng ký thành công, vui lòng xác minh mã OTP được gửi đến email",
                 user: {
                     user_id: user.user_id,
                     username: user.username,
@@ -123,43 +123,37 @@ class AuthController {
 
             if (!email || !otp) {
                 return res.status(400).json({
-                    message: "email and otp are required",
+                    message: "Email và mã OTP là bắt buộc",
                 });
             }
-
             const user = await db.User.findOne({
                 where: { email },
             });
-
             if (!user) {
                 return res.status(404).json({
-                    message: "user not found",
+                    message: "Người dùng không tồn tại",
                 });
             }
-
             if (user.is_verified) {
                 return res.status(400).json({
-                    message: "account already verified",
+                    message: "Tài khoản đã được xác minh",
                 });
             }
-
             if (!user.otp_code || !user.otp_expires_at) {
                 return res.status(400).json({
-                    message: "otp not found, please resend otp",
+                    message: "Mã OTP không tìm thấy, vui lòng gửi lại mã OTP",
                 });
             }
-
             if (new Date() > new Date(user.otp_expires_at)) {
                 return res.status(400).json({
-                    message: "otp expired, please resend otp",
+                    message: "Mã OTP đã hết hạn, vui lòng gửi lại mã OTP",
                 });
             }
-
             const otpHash = this.hashOtp(otp);
 
             if (otpHash !== user.otp_code) {
                 return res.status(400).json({
-                    message: "otp is invalid",
+                    message: "Mã OTP không hợp lệ",
                 });
             }
 
@@ -172,7 +166,7 @@ class AuthController {
             const accessToken = this.generateAccessToken(user);
 
             return res.status(200).json({
-                message: "verify otp success",
+                message: "Xác minh OTP thành công",
                 accessToken,
                 user: {
                     user_id: user.user_id,
@@ -190,7 +184,7 @@ class AuthController {
         } catch (error) {
             console.error(error);
             return res.status(500).json({
-                message: "server Error",
+                message: "Lỗi máy chủ",
                 error: error.message,
             });
         }
@@ -199,29 +193,24 @@ class AuthController {
     resendOtp = async (req, res) => {
         try {
             const { email } = req.body;
-
             if (!email) {
                 return res.status(400).json({
-                    message: "email is required",
+                    message: "Email là bắt buộc",
                 });
             }
-
             const user = await db.User.findOne({
                 where: { email },
             });
-
             if (!user) {
                 return res.status(404).json({
-                    message: "user not found",
+                    message: "Người dùng không tồn tại",
                 });
             }
-
             if (user.is_verified) {
                 return res.status(400).json({
-                    message: "account already verified",
+                    message: "Tài khoản đã được xác minh",
                 });
             }
-
             const otp = this.generateOtp();
             const otpHash = this.hashOtp(otp);
             const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
@@ -234,12 +223,12 @@ class AuthController {
             await sendOtpMail(user.email, otp);
 
             return res.status(200).json({
-                message: "otp resent successfully",
+                message: "Gửi lại mã OTP thành công",
             });
         } catch (error) {
             console.error(error);
             return res.status(500).json({
-                message: "server Error",
+                message: "Lỗi máy chủ",
                 error: error.message,
             });
         }
@@ -251,7 +240,7 @@ class AuthController {
 
             if (!email || !password) {
                 return res.status(400).json({
-                    message: "email and password are required",
+                    message: "Email và mật khẩu là bắt buộc",
                 });
             }
 
@@ -261,7 +250,7 @@ class AuthController {
 
             if (!user) {
                 return res.status(400).json({
-                    message: "Email or password is incorrect",
+                    message: "Email hoặc mật khẩu không đúng",
                 });
             }
 
@@ -269,26 +258,26 @@ class AuthController {
 
             if (!isMatch) {
                 return res.status(400).json({
-                    message: "Email or password is incorrect",
+                    message: "Email hoặc mật khẩu không đúng",
                 });
             }
 
             if (user.status !== "active") {
                 return res.status(403).json({
-                    message: "account is not active",
+                    message: "Tài khoản không hoạt động",
                 });
             }
 
             if (!user.is_verified) {
                 return res.status(403).json({
-                    message: "account is not verified, please verify otp",
+                    message: "Tài khoản chưa được xác minh, vui lòng xác minh OTP",
                 });
             }
 
             const accessToken = this.generateAccessToken(user);
 
             return res.status(200).json({
-                message: "login success",
+                message: "Đăng nhập thành công",
                 accessToken,
                 user: {
                     user_id: user.user_id,

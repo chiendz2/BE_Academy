@@ -10,20 +10,20 @@ class CartController {
 
             if (!course_id) {
                 return res.status(400).json({
-                    message: "course_id is required",
+                    message: "course_id là bắt buộc",
                 });
             }
 
             const course = await Course.findByPk(course_id);
             if (!course) {
                 return res.status(404).json({
-                    message: "Course not found",
+                    message: "Không tìm thấy khóa học",
                 });
             }
 
             if (course.is_published === false) {
                 return res.status(400).json({
-                    message: "Course is not available for purchase",
+                    message: "Khóa học không khả dụng để mua",
                 });
             }
             const existedEnrollment = await CourseEnrollment.findOne({
@@ -32,7 +32,7 @@ class CartController {
 
             if (existedEnrollment) {
                 return res.status(400).json({
-                    message: "You already own this course",
+                    message: "Bạn đã sở hữu khóa học này",
                 });
             }
             const existedCartItem = await CartItem.findOne({
@@ -40,7 +40,7 @@ class CartController {
             });
             if (existedCartItem) {
                 return res.status(400).json({
-                    message: "Course already in cart",
+                    message: "Khóa học đã có trong giỏ hàng",
                 });
             }
             const cartItem = await CartItem.create({
@@ -49,13 +49,13 @@ class CartController {
                 added_at: new Date(),
             });
             return res.status(201).json({
-                message: "Add course to cart success",
+                message: "Thêm khóa học vào giỏ hàng thành công",
                 cartItem,
             });
         } catch (error) {
             console.error("addToCart error:", error);
             return res.status(500).json({
-                message: "Server error",
+                message: "Lỗi máy chủ",
                 error: error.message,
             });
         }
@@ -83,7 +83,7 @@ class CartController {
                 return sum + price;
             }, 0);
             return res.status(200).json({
-                message: "Get cart success",
+                message: "Lấy giỏ hàng thành công",
                 total_amount,
                 total_items: cartItems.length,
                 cartItems,
@@ -91,7 +91,7 @@ class CartController {
         } catch (error) {
             console.error("getMyCart error:", error);
             return res.status(500).json({
-                message: "Server error",
+                message: "Lỗi máy chủ",
                 error: error.message,
             });
         }
@@ -107,17 +107,17 @@ class CartController {
 
             if (!cartItem) {
                 return res.status(404).json({
-                    message: "Cart item not found",
+                    message: "Không tìm thấy sản phẩm trong giỏ hàng",
                 });
             }
             await cartItem.destroy();
             return res.status(200).json({
-                message: "Remove course from cart success",
+                message: "Xóa khóa học khỏi giỏ hàng thành công",
             });
         } catch (error) {
             console.error("removeFromCart error:", error);
             return res.status(500).json({
-                message: "Server error",
+                message: "Lỗi máy chủ",
                 error: error.message,
             });
         }
@@ -132,12 +132,12 @@ class CartController {
             });
 
             return res.status(200).json({
-                message: "Clear cart success",
+                message: "Xóa giỏ hàng thành công",
             });
         } catch (error) {
             console.error("clearCart error:", error);
             return res.status(500).json({
-                message: "Server error",
+                message: "Lỗi máy chủ",
                 error: error.message,
             });
         }

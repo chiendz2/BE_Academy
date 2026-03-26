@@ -30,7 +30,7 @@ class OrderController {
             if (!cartItems || cartItems.length === 0) {
                 await transaction.rollback();
                 return res.status(400).json({
-                    message: "Cart is empty",
+                    message: "Giỏ hàng trống",
                 });
             }
             const validItems = [];
@@ -65,7 +65,7 @@ class OrderController {
             if (validItems.length === 0) {
                 await transaction.rollback();
                 return res.status(400).json({
-                    message: "No valid courses to checkout",
+                    message: "Không có khóa học hợp lệ để thanh toán",
                 });
             }
             const order = await Order.create(
@@ -91,7 +91,7 @@ class OrderController {
             }
             await transaction.commit();
             return res.status(201).json({
-                message: "Checkout success",
+                message: "Thanh toán thành công, đơn hàng đang chờ xử lý",
                 order,
             });
         } catch (error) {
@@ -99,7 +99,7 @@ class OrderController {
             await transaction.rollback();
             console.error("checkout error:", error);
             return res.status(500).json({
-                message: "Server error",
+                message: "Lỗi máy chủ",
                 error: error.message,
             });
         }
@@ -126,13 +126,13 @@ class OrderController {
             if (!order) {
                 await transaction.rollback();
                 return res.status(404).json({
-                    message: "Order not found",
+                    message: "Đơn hàng không tìm thấy",
                 });
             }
             if (order.status === "paid") {
                 await transaction.rollback();
                 return res.status(400).json({
-                    message: "Order already paid",
+                    message: "Đơn hàng đã được thanh toán",
                 });
             }
             await order.update(
@@ -172,13 +172,13 @@ class OrderController {
             });
             await transaction.commit();
             return res.status(200).json({
-                message: "Payment success and enrollment created",
+                message: "Thanh toán thành công và đăng ký khóa học đã được tạo",
             });
         } catch (error) {
             await transaction.rollback();
             console.error("paymentSuccess error:", error);
             return res.status(500).json({
-                message: "Server error",
+                message: "Lỗi máy chủ",
                 error: error.message,
             });
         }
@@ -195,13 +195,13 @@ class OrderController {
 
             if (!order) {
                 return res.status(404).json({
-                    message: "Order not found",
+                    message: "Đơn hàng không tìm thấy",
                 });
             }
 
             if (order.status === "paid") {
                 return res.status(400).json({
-                    message: "Paid order cannot be marked failed",
+                    message: "Đơn hàng đã được thanh toán không thể đánh dấu thất bại",
                 });
             }
 
@@ -211,12 +211,12 @@ class OrderController {
             });
 
             return res.status(200).json({
-                message: "Payment failed",
+                message: "Thanh toán thất bại",
             });
         } catch (error) {
             console.error("paymentFail error:", error);
             return res.status(500).json({
-                message: "Server error",
+                message: "Lỗi máy chủ",
                 error: error.message,
             });
         }
@@ -233,13 +233,13 @@ class OrderController {
 
             if (!order) {
                 return res.status(404).json({
-                    message: "Order not found",
+                    message: "Đơn hàng không tìm thấy",
                 });
             }
 
             if (order.status === "paid") {
                 return res.status(400).json({
-                    message: "Cannot cancel a paid order",
+                    message: "Không thể hủy đơn hàng đã thanh toán",
                 });
             }
 
@@ -249,12 +249,12 @@ class OrderController {
             });
 
             return res.status(200).json({
-                message: "Order cancelled successfully",
+                message: "Hủy đơn hàng thành công",
             });
         } catch (error) {
             console.error("cancelOrder error:", error);
             return res.status(500).json({
-                message: "Server error",
+                message: "Lỗi máy chủ",
                 error: error.message,
             });
         }
@@ -282,13 +282,13 @@ class OrderController {
             });
 
             return res.status(200).json({
-                message: "Get orders success",
+                message: "Lấy đơn hàng thành công",
                 orders,
             });
         } catch (error) {
             console.error("getMyOrders error:", error);
             return res.status(500).json({
-                message: "Server error",
+                message: "Lỗi máy chủ",
                 error: error.message,
             });
         }
@@ -317,18 +317,18 @@ class OrderController {
 
             if (!order) {
                 return res.status(404).json({
-                    message: "Order not found",
+                    message: "Đơn hàng không tìm thấy",
                 });
             }
 
             return res.status(200).json({
-                message: "Get order detail success",
+                message: "Lấy chi tiết đơn hàng thành công",
                 order,
             });
         } catch (error) {
             console.error("getOrderDetail error:", error);
             return res.status(500).json({
-                message: "Server error",
+                message: "Lỗi máy chủ",
                 error: error.message,
             });
         }
@@ -353,7 +353,7 @@ class OrderController {
             });
 
             return res.status(200).json({
-                message: "Get purchased courses success",
+                message: "Lấy khóa học đã mua thành công",
                 enrollments,
             });
         } catch (error) {

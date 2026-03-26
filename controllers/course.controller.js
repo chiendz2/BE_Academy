@@ -13,7 +13,7 @@ class CourseController {
 
             if (!teacher_id || !title) {
                 return res.status(400).json({
-                    message: "teacher_id and title are required",
+                    message: "Mã giáo viên và chức danh là bắt buộc",
                 });
             }
 

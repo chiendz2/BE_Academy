@@ -7,13 +7,13 @@ class AuthMiddleware {
 
             if (!authHeader) {
                 return res.status(401).json({
-                    message: "you are not authenticated",
+                    message: "Bạn chưa được xác thực",
                 });
             }
 
             if (!authHeader.startsWith("Bearer ")) {
                 return res.status(401).json({
-                    message: "Authorization header not in Bearer format",
+                    message: "Tiêu đề ủy quyền không ở định dạng",
                 });
             }
 
@@ -21,7 +21,7 @@ class AuthMiddleware {
 
             if (!token) {
                 return res.status(401).json({
-                    message: "Token does not exist",
+                    message: "Token không tồn tại",
                 });
             }
 
@@ -35,7 +35,7 @@ class AuthMiddleware {
         } catch (error) {
             console.error(error);
             return res.status(401).json({
-                message: "Token has expired or is invalid",
+                message: "Token đã hết hạn hoặc không hợp lệ",
                 error: error.message,
             });
         }
@@ -46,20 +46,20 @@ class AuthMiddleware {
             try {
                 if (!req.user) {
                     return res.status(401).json({
-                        message: "You are not authenticated",
+                        message: "Bạn chưa được xác thực",
                     });
                 }
 
                 if (!roles.includes(req.user.role)) {
                     return res.status(403).json({
-                        message: "You are not authorized to access this resource",
+                        message: "Bạn không có quyền truy cập tài nguyên này",
                     });
                 }
 
                 next();
             } catch (error) {
                 return res.status(500).json({
-                    message: "Error occurred while authorizing roles",
+                    message: "Lỗi xảy ra trong khi ủy quyền vai trò",
                     error: error.message,
                 });
             }

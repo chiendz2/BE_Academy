@@ -17,14 +17,14 @@ class LessonController {
 
             if (!course_id || !title) {
                 return res.status(400).json({
-                    message: "course_id and title are required",
+                    message: "Mã khóa học (course_id) và tiêu đề (title) là bắt buộc.",
                 });
             }
 
             const course = await Course.findByPk(course_id);
             if (!course) {
                 return res.status(404).json({
-                    message: "Course not found",
+                    message: "Khóa học không tìm thấy",
                 });
             }
             let lesson_link = null;
@@ -45,12 +45,12 @@ class LessonController {
             });
 
             return res.status(201).json({
-                message: "Create lesson success",
+                message: "Tạo bài giảng thành công",
                 lesson,
             });
         } catch (error) {
             return res.status(500).json({
-                message: "Server error",
+                message: "Lỗi máy chủ",
                 error: error.message,
             });
         }
@@ -79,7 +79,7 @@ class LessonController {
                 offset,
             });
             return res.status(200).json({
-                message: "Get all lessons success",
+                message: "Lấy tất cả bài giảng thành công",
                 lessons,
                 pagination: {
                     currentPage: page,
@@ -91,7 +91,7 @@ class LessonController {
         } catch (error) {
             console.log("Error getting all lessons:", error);
             return res.status(500).json({
-                message: "Server error",
+                message: "Lỗi máy chủ",
                 error: error.message,
             });
         }
@@ -113,18 +113,18 @@ class LessonController {
 
             if (!lesson) {
                 return res.status(404).json({
-                    message: "Lesson not found",
+                    message: "Bài giảng không tìm thấy",
                 });
             }
 
             return res.status(200).json({
-                message: "Get lesson success",
+                message: "Lấy bài giảng thành công",
                 lesson,
             });
         } catch (error) {
             console.log("Error fetching lesson by id:", error);
             return res.status(500).json({
-                message: "Server error",
+                message: "Lỗi máy chủ",
                 error: error.message,
             });
         }
@@ -138,7 +138,7 @@ class LessonController {
             const course = await Course.findByPk(courseId);
             if (!course) {
                 return res.status(404).json({
-                    message: "Course not found",
+                    message: "Khóa học không tìm thấy",
                 });
             }
             const lessons = await Lesson.findAll({
@@ -147,13 +147,13 @@ class LessonController {
             });
 
             return res.status(200).json({
-                message: "Get lessons by course success",
+                message: "Lấy bài giảng theo khóa học thành công",
                 lessons,
             });
         } catch (error) {
             console.log("Error fetching lessons by course id:", error);
             return res.status(500).json({
-                message: "Server error",
+                message: "Lỗi máy chủ",
                 error: error.message,
             });
         }
@@ -175,14 +175,14 @@ class LessonController {
             const lesson = await Lesson.findByPk(id);
             if (!lesson) {
                 return res.status(404).json({
-                    message: "Lesson not found",
+                    message: "Bài giảng không tìm thấy",
                 });
             }
             if (course_id) {
                 const course = await Course.findByPk(course_id);
                 if (!course) {
                     return res.status(404).json({
-                        message: "Course not found",
+                        message: "Khóa học không tìm thấy",
                     });
                 }
             }
@@ -197,12 +197,12 @@ class LessonController {
             });
 
             return res.status(200).json({
-                message: "Update lesson success",
+                message: "Cập nhật bài giảng thành công",
                 lesson,
             });
         } catch (error) {
             return res.status(500).json({
-                message: "Server error",
+                message: "Lỗi máy chủ",
                 error: error.message,
             });
         }
@@ -215,17 +215,17 @@ class LessonController {
             const lesson = await Lesson.findByPk(id);
             if (!lesson) {
                 return res.status(404).json({
-                    message: "Lesson not found",
+                    message: "Bài giảng không tìm thấy",
                 });
             }
             await lesson.update({ IsActive: false });
             return res.status(200).json({
-                message: "Delete lesson success",
+                message: "Xóa bài giảng thành công",
             });
         } catch (error) {
             console.log("Error deleting lesson:", error);
             return res.status(500).json({
-                message: "Server error",
+                message: "Lỗi máy chủ",
                 error: error.message,
             });
         }

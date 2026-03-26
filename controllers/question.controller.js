@@ -19,7 +19,7 @@ class QuestionController {
             if (!course_id || !content) {
                 await t.rollback();
                 return res.status(400).json({
-                    message: "course_id and content are required",
+                    message: "course_id và content là bắt buộc",
                 });
             }
             const course = await Course.findByPk(course_id, { transaction: t });
@@ -32,14 +32,14 @@ class QuestionController {
             if (!Array.isArray(options) || options.length < 2) {
                 await t.rollback();
                 return res.status(400).json({
-                    message: "Question must have at least 2 options",
+                    message: "Câu hỏi phải có ít nhất 2 lựa chọn",
                 });
             }
             const correctCount = options.filter((x) => x.is_correct).length;
             if (correctCount < 1) {
                 await t.rollback();
                 return res.status(400).json({
-                    message: "Question must have at least 1 correct option",
+                    message: "Câu hỏi phải có ít nhất 1 lựa chọn đúng",
                 });
             }
             const question = await Question.create(
@@ -76,7 +76,7 @@ class QuestionController {
             console.error("Error creating question:", error);
             await t.rollback();
             return res.status(500).json({
-                message: "Server error",
+                message: "Lỗi máy chủ",
                 error: error.message,
             });
         }
@@ -110,7 +110,7 @@ class QuestionController {
             });
 
             return res.status(200).json({
-                message: "Get questions success",
+                message: "Lấy câu hỏi thành công",
                 questions,
                 pagination: {
                     currentPage: page,
@@ -250,7 +250,7 @@ class QuestionController {
             });
 
             return res.status(200).json({
-                message: "Search questions success",
+                message: "Tìm kiếm câu hỏi thành công",
                 filters: {
                     q: q || null,
                     subject_type: subject_type || null,
@@ -273,7 +273,7 @@ class QuestionController {
         } catch (error) {
             console.error("Error searching questions:", error);
             return res.status(500).json({
-                message: "Server error",
+                message: "Lỗi máy chủ",
                 error: error.message,
             });
         }
@@ -292,17 +292,17 @@ class QuestionController {
             });
             if (!question) {
                 return res.status(404).json({
-                    message: "Question not found",
+                    message: "Câu hỏi không tìm thấy",
                 });
             }
             return res.status(200).json({
-                message: "Get question success",
+                message: "Lấy câu hỏi thành công",
                 question,
             });
         } catch (error) {
             console.error("Error fetching question by ID:", error);
             return res.status(500).json({
-                message: "Server error",
+                message: "Lỗi máy chủ",
                 error: error.message,
             });
         }
@@ -324,7 +324,7 @@ class QuestionController {
             if (!question) {
                 await t.rollback();
                 return res.status(404).json({
-                    message: "Question not found",
+                    message: "Câu hỏi không tìm thấy",
                 });
             }
 
@@ -343,7 +343,7 @@ class QuestionController {
                 if (correctCount < 1) {
                     await t.rollback();
                     return res.status(400).json({
-                        message: "Question must have at least 1 correct option",
+                        message: "Câu hỏi phải có ít nhất 1 lựa chọn đúng",
                     });
                 }
 
@@ -373,14 +373,14 @@ class QuestionController {
             });
 
             return res.status(200).json({
-                message: "Update question success",
+                message: "Cập nhật câu hỏi thành công",
                 question: updatedQuestion,
             });
         } catch (error) {
             await t.rollback();
             console.error("Error updating question:", error);
             return res.status(500).json({
-                message: "Server error",
+                message: "Lỗi máy chủ",
                 error: error.message,
             });
         }
@@ -396,7 +396,7 @@ class QuestionController {
             if (!question) {
                 await t.rollback();
                 return res.status(404).json({
-                    message: "Question not found",
+                    message: "Câu hỏi không tìm thấy",
                 });
             }
 
@@ -410,13 +410,13 @@ class QuestionController {
             await t.commit();
 
             return res.status(200).json({
-                message: "Delete question success",
+                message: "Xóa câu hỏi thành công",
             });
         } catch (error) {
             console.error("Error deleting question:", error);
             await t.rollback();
             return res.status(500).json({
-                message: "Server error",
+                message: "Lỗi máy chủ",
                 error: error.message,
             });
         }
