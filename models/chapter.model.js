@@ -1,15 +1,15 @@
 const { DataTypes } = require("sequelize");
 
 module.exports = (sequelize) => {
-    const LessonLink = sequelize.define(
-        "LessonLink",
+    const Chapter = sequelize.define(
+        "Chapter",
         {
-            lesson_link_id: {
+            chapter_id: {
                 type: DataTypes.UUID,
                 primaryKey: true,
                 defaultValue: DataTypes.UUIDV4,
             },
-            lesson_id: {
+            course_id: {
                 type: DataTypes.UUID,
                 allowNull: false,
             },
@@ -17,13 +17,9 @@ module.exports = (sequelize) => {
                 type: DataTypes.STRING(255),
                 allowNull: false,
             },
-            url: {
+            description: {
                 type: DataTypes.TEXT,
-                allowNull: false,
-            },
-            type: {
-                type: DataTypes.ENUM("video", "document", "drive", "youtube", "other"),
-                defaultValue: "other",
+                allowNull: true,
             },
             sort_order: {
                 type: DataTypes.INTEGER,
@@ -43,10 +39,10 @@ module.exports = (sequelize) => {
             },
         },
         {
-            tableName: "lesson_links",
+            tableName: "chapters",
             timestamps: false,
         }
     );
 
-    return LessonLink;
+    return Chapter;
 };

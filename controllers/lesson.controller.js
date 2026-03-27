@@ -1,86 +1,130 @@
 const db = require("../models");
-const uploadVideoToCloudinary = require("../utils/uploadToCloudinary");
-const { Lesson, Course } = db;
+const { Lesson, Course, Chapter } = db;
+const { uploadVideoToCloudinary } = require("../utils/uploadToCloudinary");
 
 class LessonController {
+    parsePagination(query) {
+        let { page = 1, limit = 10 } = query;
+
+        page = parseInt(page, 10);
+        limit = parseInt(limit, 10);
+
+        if (isNaN(page) || page < 1) page = 1;
+        if (isNaN(limit) || limit < 1) limit = 10;
+        if (limit > 100) limit = 100;
+
+        return {
+            page,
+            limit,
+            offset: (page - 1) * limit,
+        };
+    }
+
     // [POST] /api/lessons
     createLesson = async (req, res) => {
         try {
             const {
-                course_id,
+                chapter_id,
                 title,
                 description,
                 duration,
                 sort_order,
                 content,
+                IsPreview,
             } = req.body;
 
-            if (!course_id || !title) {
+            if (!chapter_id || !title) {
                 return res.status(400).json({
-                    message: "Mã khóa học (course_id) và tiêu đề (title) là bắt buộc.",
+                    message: "chapter_id và title là bắt buộc",
                 });
             }
 
-            const course = await Course.findByPk(course_id);
-            if (!course) {
+            const chapter = await Chapter.findOne({
+                where: {
+                    chapter_id,
+                    IsActive: true,
+                },
+                include: [
+                    {
+                        model: Course,
+                        as: "course",
+                        required: true,
+                        where: { IsActive: true },
+                    },
+                ],
+            });
+
+            if (!chapter) {
                 return res.status(404).json({
-                    message: "Khóa học không tìm thấy",
+                    message: "Chương không tồn tại hoặc khóa học đã bị vô hiệu hóa",
                 });
             }
+
             let lesson_link = null;
 
             if (req.file) {
-                const uploadResult = await uploadVideoToCloudinary(req.file.buffer);
+                const uploadResult = await uploadVideoToCloudinary(
+                    req.file.buffer
+                );
                 lesson_link = uploadResult.secure_url;
             }
 
             const lesson = await Lesson.create({
-                course_id,
+                course_id: chapter.course_id,
+                chapter_id,
                 title,
                 description,
                 duration,
                 lesson_link,
                 sort_order: sort_order ?? 0,
                 content,
+                IsPreview: IsPreview ?? false,
             });
 
             return res.status(201).json({
-                message: "Tạo bài giảng thành công",
+                message: "Tạo bài học thành công",
                 lesson,
             });
         } catch (error) {
             return res.status(500).json({
-                message: "Lỗi máy chủ",
+                message: "Lỗi server",
                 error: error.message,
             });
         }
     };
 
-    // [GET] /api/lessons
+    // [GET] /api/lessons?course_id=...&chapter_id=...
     getAllLessons = async (req, res) => {
         try {
-            let { page = 1, limit = 10 } = req.query;
-            page = parseInt(page);
-            limit = parseInt(limit);
-            if (isNaN(page) || page < 1) page = 1;
-            if (isNaN(limit) || limit < 1) limit = 10;
-            if (limit > 100) limit = 100;
-            const offset = (page - 1) * limit;
+            const { page, limit, offset } = this.parsePagination(req.query);
+            const { course_id, chapter_id } = req.query;
 
-            const { count, rows: lessons } = await Lesson.findAndCountAll({
+            const where = { IsActive: true };
+            if (chapter_id) where.chapter_id = chapter_id;
+            if (course_id) where.course_id = course_id;
+
+            const { count, rows } = await Lesson.findAndCountAll({
+                where,
                 include: [
                     {
                         model: Course,
                         as: "course",
+                        required: false,
+                    },
+                    {
+                        model: Chapter,
+                        as: "chapter",
+                        required: false,
                     },
                 ],
                 order: [["sort_order", "ASC"]],
                 limit,
                 offset,
             });
+
             return res.status(200).json({
-                message: "Lấy tất cả bài giảng thành công",
-                lessons,
+                message: "Lấy danh sách bài học thành công",
+                lessons: rows,
                 pagination: {
                     currentPage: page,
                     limit,
@@ -89,143 +133,212 @@ class LessonController {
                 },
             });
         } catch (error) {
-            console.log("Error getting all lessons:", error);
             return res.status(500).json({
-                message: "Lỗi máy chủ",
+                message: "Lỗi server",
                 error: error.message,
             });
         }
     };
 
-    // [GET] /api/lessons/:id
+    // [GET] /api/lessons/:lessonId
     getLessonById = async (req, res) => {
         try {
-            const { id } = req.params;
+            const { lessonId } = req.params;
 
-            const lesson = await Lesson.findByPk(id, {
+            const lesson = await Lesson.findOne({
+                where: {
+                    lesson_id: lessonId,
+                    IsActive: true,
+                },
                 include: [
                     {
                         model: Course,
                         as: "course",
+                        required: false,
+                    },
+                    {
+                        model: Chapter,
+                        as: "chapter",
+                        required: false,
                     },
                 ],
             });
 
             if (!lesson) {
                 return res.status(404).json({
-                    message: "Bài giảng không tìm thấy",
+                    message: "Bài học không tồn tại",
                 });
             }
 
             return res.status(200).json({
-                message: "Lấy bài giảng thành công",
+                message: "Lấy chi tiết bài học thành công",
                 lesson,
             });
         } catch (error) {
-            console.log("Error fetching lesson by id:", error);
             return res.status(500).json({
-                message: "Lỗi máy chủ",
+                message: "Lỗi server",
                 error: error.message,
             });
         }
     };
 
-    // [GET] /api/courses/:courseId/lessons
-    getLessonsByCourseId = async (req, res) => {
+    // [GET] /api/chapters/:chapterId/lessons
+    getLessonsByChapterId = async (req, res) => {
         try {
-            const { courseId } = req.params;
+            const { chapterId } = req.params;
 
-            const course = await Course.findByPk(courseId);
-            if (!course) {
+            const chapter = await Chapter.findOne({
+                where: {
+                    chapter_id: chapterId,
+                    IsActive: true,
+                },
+            });
+
+            if (!chapter) {
                 return res.status(404).json({
-                    message: "Khóa học không tìm thấy",
+                    message: "Chương không tồn tại",
                 });
             }
+
             const lessons = await Lesson.findAll({
-                where: { course_id: courseId },
+                where: {
+                    chapter_id: chapterId,
+                    IsActive: true,
+                },
                 order: [["sort_order", "ASC"]],
             });
 
             return res.status(200).json({
-                message: "Lấy bài giảng theo khóa học thành công",
+                message: "Lấy danh sách bài học theo chương thành công",
                 lessons,
             });
         } catch (error) {
-            console.log("Error fetching lessons by course id:", error);
             return res.status(500).json({
-                message: "Lỗi máy chủ",
+                message: "Lỗi server",
                 error: error.message,
             });
         }
     };
 
-    // [PUT] /api/lessons/:id
+    // [PUT] /api/lessons/:lessonId
     updateLesson = async (req, res) => {
         try {
-            const { id } = req.params;
+            const { lessonId } = req.params;
             const {
-                course_id,
+                chapter_id,
                 title,
                 description,
                 duration,
                 sort_order,
                 content,
+                IsPreview,
             } = req.body;
 
-            const lesson = await Lesson.findByPk(id);
+            const lesson = await Lesson.findOne({
+                where: {
+                    lesson_id: lessonId,
+                    IsActive: true,
+                },
+            });
+
             if (!lesson) {
                 return res.status(404).json({
-                    message: "Bài giảng không tìm thấy",
+                    message: "Bài học không tồn tại",
                 });
             }
-            if (course_id) {
-                const course = await Course.findByPk(course_id);
-                if (!course) {
+
+            let nextCourseId = lesson.course_id;
+            let nextChapterId = lesson.chapter_id;
+
+            if (chapter_id) {
+                const chapter = await Chapter.findOne({
+                    where: {
+                        chapter_id,
+                        IsActive: true,
+                    },
+                    include: [
+                        {
+                            model: Course,
+                            as: "course",
+                            required: true,
+                            where: { IsActive: true },
+                        },
+                    ],
+                });
+
+                if (!chapter) {
                     return res.status(404).json({
-                        message: "Khóa học không tìm thấy",
+                        message: "Chương mới không tồn tại hoặc khóa học đã bị vô hiệu hóa",
                     });
                 }
+
+                nextChapterId = chapter.chapter_id;
+                nextCourseId = chapter.course_id;
             }
+
+            let lesson_link = lesson.lesson_link;
+
+            if (req.file) {
+                const uploadResult = await uploadVideoToCloudinary(
+                    req.file.buffer
+                );
+                lesson_link = uploadResult.secure_url;
+            }
+
             await lesson.update({
-                course_id: course_id ?? lesson.course_id,
+                chapter_id: nextChapterId,
+                course_id: nextCourseId,
                 title: title ?? lesson.title,
                 description: description ?? lesson.description,
                 duration: duration ?? lesson.duration,
                 sort_order: sort_order ?? lesson.sort_order,
                 content: content ?? lesson.content,
+                IsPreview: IsPreview ?? lesson.IsPreview,
+                lesson_link,
                 updated_at: new Date(),
             });
 
             return res.status(200).json({
-                message: "Cập nhật bài giảng thành công",
+                message: "Cập nhật bài học thành công",
                 lesson,
             });
         } catch (error) {
             return res.status(500).json({
-                message: "Lỗi máy chủ",
+                message: "Lỗi server",
                 error: error.message,
             });
         }
     };
 
-    // [DELETE] /api/lessons/:id
+    // [DELETE] /api/lessons/:lessonId
     deleteLesson = async (req, res) => {
         try {
-            const { id } = req.params;
-            const lesson = await Lesson.findByPk(id);
+            const { lessonId } = req.params;
+
+            const lesson = await Lesson.findOne({
+                where: {
+                    lesson_id: lessonId,
+                    IsActive: true,
+                },
+            });
+
             if (!lesson) {
                 return res.status(404).json({
-                    message: "Bài giảng không tìm thấy",
+                    message: "Bài học không tồn tại",
                 });
             }
-            await lesson.update({ IsActive: false });
+
+            await lesson.update({
+                IsActive: false,
+                updated_at: new Date(),
+            });
+
             return res.status(200).json({
-                message: "Xóa bài giảng thành công",
+                message: "Xóa bài học thành công",
             });
         } catch (error) {
-            console.log("Error deleting lesson:", error);
             return res.status(500).json({
-                message: "Lỗi máy chủ",
+                message: "Lỗi server",
                 error: error.message,
             });
         }

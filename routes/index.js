@@ -6,13 +6,16 @@ const lessonRouter = require("./lesson.router");
 const examRoutes = require("./exam.routes");
 const questionRoutes = require("./question.routes");
 const userRoutes = require("./user.routes");
+const chapterRoutes = require("./chapter.routes");
+
+
 router.use("/auth", authRoutes);
 router.use("/courses", courseRouter);
 router.use("/lessons", lessonRouter);
 router.use("/exams", examRoutes);
 router.use("/questions", questionRoutes);
 router.use("/users", userRoutes);
-
+router.use("/chapters", chapterRoutes);
 
 router.get("/", (req, res) => {
     res.json({

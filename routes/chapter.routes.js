@@ -1,16 +1,15 @@
 const express = require("express");
 const router = express.Router();
 
-const lessonController = require("../controllers/lesson.controller");
+const chapterController = require("../controllers/chapter.controller");
 const Middleware = require("../middleware/auth.middleware");
-const { uploadVideo } = require("../utils/uploadVideo");
 
 /**
  * @swagger
- * /api/lessons:
+ * /api/chapters:
  *   get:
- *     summary: Lấy danh sách bài học
- *     tags: [Lessons]
+ *     summary: Lấy danh sách chương
+ *     tags: [Chapters]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -25,74 +24,61 @@ const { uploadVideo } = require("../utils/uploadVideo");
  *           type: integer
  *           example: 10
  *       - in: query
- *         name: chapter_id
+ *         name: course_id
  *         schema:
  *           type: string
  *           format: uuid
- *         description: Lọc theo chương
+ *         description: Lọc theo khóa học
  *     responses:
  *       200:
- *         description: Danh sách bài học
+ *         description: Danh sách chương
  *   post:
- *     summary: Tạo bài học kèm video
- *     tags: [Lessons]
+ *     summary: Tạo chương mới cho khóa học
+ *     tags: [Chapters]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
- *         multipart/form-data:
+ *         application/json:
  *           schema:
  *             type: object
  *             required:
- *               - chapter_id
+ *               - course_id
  *               - title
  *             properties:
- *               chapter_id:
+ *               course_id:
  *                 type: string
  *                 format: uuid
- *                 example: 550e8400-e29b-41d4-a716-446655440111
+ *                 example: 550e8400-e29b-41d4-a716-446655440000
  *               title:
  *                 type: string
- *                 example: Bài học 1
+ *                 example: Chương 1 - Nhập môn
  *               description:
  *                 type: string
- *                 example: Giới thiệu bài học
- *               duration:
- *                 type: integer
- *                 example: 300
+ *                 example: Nội dung tổng quan của chương
  *               sort_order:
  *                 type: integer
  *                 example: 1
- *               content:
- *                 type: string
- *                 example: Nội dung bài học
- *               IsPreview:
- *                 type: boolean
- *                 example: false
- *               video:
- *                 type: string
- *                 format: binary
  *     responses:
  *       201:
- *         description: Tạo bài học thành công
+ *         description: Tạo chương thành công
  */
-router.get("/", Middleware.verifyToken, lessonController.getAllLessons);
+router.get("/", Middleware.verifyToken, chapterController.getAllChapters);
 
 router.post(
     "/",
     Middleware.verifyToken,
     Middleware.authorizeRoles("teacher", "admin"),
-    uploadVideo.single("video"),
-    lessonController.createLesson
+    chapterController.createChapter
 );
 
 /**
  * @swagger
- * /api/lessons/{id}:
+ * /api/chapters/{id}:
  *   get:
- *     summary: Lấy chi tiết bài học
- *     tags: [Lessons]
+ *     summary: Lấy chi tiết một chương
+ *     tags: [Chapters]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -104,10 +90,10 @@ router.post(
  *           format: uuid
  *     responses:
  *       200:
- *         description: Chi tiết bài học
+ *         description: Chi tiết chương
  *   put:
- *     summary: Cập nhật bài học
- *     tags: [Lessons]
+ *     summary: Cập nhật chương
+ *     tags: [Chapters]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -120,34 +106,25 @@ router.post(
  *     requestBody:
  *       required: true
  *       content:
- *         multipart/form-data:
+ *         application/json:
  *           schema:
  *             type: object
  *             properties:
- *               chapter_id:
+ *               course_id:
  *                 type: string
  *                 format: uuid
  *               title:
  *                 type: string
  *               description:
  *                 type: string
- *               duration:
- *                 type: integer
  *               sort_order:
  *                 type: integer
- *               content:
- *                 type: string
- *               IsPreview:
- *                 type: boolean
- *               video:
- *                 type: string
- *                 format: binary
  *     responses:
  *       200:
- *         description: Cập nhật thành công
+ *         description: Cập nhật chương thành công
  *   delete:
- *     summary: Xóa bài học
- *     tags: [Lessons]
+ *     summary: Xóa chương
+ *     tags: [Chapters]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -159,23 +136,47 @@ router.post(
  *           format: uuid
  *     responses:
  *       200:
- *         description: Xóa thành công
+ *         description: Xóa chương thành công
  */
-router.get("/:id", Middleware.verifyToken, lessonController.getLessonById);
+router.get("/:id", Middleware.verifyToken, chapterController.getChapterById);
 
 router.put(
     "/:id",
     Middleware.verifyToken,
     Middleware.authorizeRoles("teacher", "admin"),
-    uploadVideo.single("video"),
-    lessonController.updateLesson
+    chapterController.updateChapter
 );
 
 router.delete(
     "/:id",
     Middleware.verifyToken,
     Middleware.authorizeRoles("teacher", "admin"),
-    lessonController.deleteLesson
+    chapterController.deleteChapter
+);
+
+/**
+ * @swagger
+ * /api/courses/{courseId}/chapters:
+ *   get:
+ *     summary: Lấy danh sách chương theo khóa học
+ *     tags: [Chapters]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Danh sách chương của khóa học
+ */
+router.get(
+    "/course/by-course/:courseId",
+    Middleware.verifyToken,
+    chapterController.getChaptersByCourseId
 );
 
 module.exports = router;

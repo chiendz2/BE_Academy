@@ -25,12 +25,17 @@ db.OrderItem = require("./orderItem.model")(sequelize);
 db.ExamQuestion = require("./ExamQuestion.model")(sequelize);
 db.QuestionOption = require("./QuestionOption.model")(sequelize);
 
+db.Chapter = require("./chapter.model")(sequelize);
+db.LessonLink = require("./LessonLink.model")(sequelize);
+
 const {
     User,
     AIChatHistory,
     Notification,
     Course,
+    Chapter,
     Lesson,
+    LessonLink,
     Exam,
     Question,
     Answer,
@@ -89,10 +94,19 @@ CourseEnrollment.belongsTo(Course, { foreignKey: "course_id" });
 Course.hasMany(OrderItem, { foreignKey: "course_id" });
 OrderItem.belongsTo(Course, { foreignKey: "course_id" });
 
+
+
+// Chapter relations
+Chapter.hasMany(Lesson, { foreignKey: "chapter_id", as: "lessons" });
+Lesson.belongsTo(Chapter, { foreignKey: "chapter_id", as: "chapter" });
+
 // Lesson relations
 Lesson.hasMany(LessonProgress, { foreignKey: "lesson_id" });
 LessonProgress.belongsTo(Lesson, { foreignKey: "lesson_id" });
 
+
+Lesson.hasMany(LessonLink, { foreignKey: "lesson_id", as: "lessonLinks" });
+LessonLink.belongsTo(Lesson, { foreignKey: "lesson_id", as: "lesson" });
 // Exam relations
 // Exam.hasMany(Question, { foreignKey: "exam_id" });
 // Question.belongsTo(Exam, { foreignKey: "exam_id" });

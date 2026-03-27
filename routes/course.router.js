@@ -93,25 +93,4 @@ router.get("/:id", Middleware.verifyToken, courseController.getCourseById);
 router.put("/:id", Middleware.verifyToken, Middleware.authorizeRoles("teacher", "admin"), courseController.updateCourse);
 router.delete("/:id", Middleware.verifyToken, Middleware.authorizeRoles("teacher", "admin"), courseController.deleteCourse);
 
-/**
- * @swagger
- * /api/courses/{courseId}/lessons:
- *   get:
- *     summary: Lấy danh sách bài học theo khóa học
- *     tags: [Courses]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: courseId
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *     responses:
- *       200:
- *         description: Danh sách bài học
- */
-router.get("/:courseId/lessons", Middleware.verifyToken, lessonController.getLessonsByCourseId);
-
 module.exports = router;

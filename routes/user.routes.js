@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const userController = require("../controllers/user.controller");
 const Middleware = require("../middleware/auth.middleware");
-
+const { uploadImageUtil } = require("../utils/uploadVideo");
 /**
  * @swagger
  * components:
@@ -199,9 +199,73 @@ router.get("/:id", userController.getUserById);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/CreateUserInput'
+ *             type: object
+ *             required:
+ *               - username
+ *               - email
+ *               - password
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 example: nguyenvana
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: nguyenvana@gmail.com
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 example: 123456
+ *               role:
+ *                 type: string
+ *                 example: teacher
+ *               status:
+ *                 type: string
+ *                 example: active
+ *               full_name:
+ *                 type: string
+ *                 example: Nguyễn Văn A
+ *               phone:
+ *                 type: string
+ *                 example: 0123456789
+ *               address:
+ *                 type: string
+ *                 example: Hà Nội
+ *               avatar:
+ *                 type: string
+ *                 format: binary
+ *               is_verified:
+ *                 type: boolean
+ *                 example: true
+ *               job_title:
+ *                 type: string
+ *                 example: Giáo viên
+ *               academic_degree:
+ *                 type: string
+ *                 example: Cử nhân
+ *               specialization:
+ *                 type: string
+ *                 example: Toán
+ *               workplace:
+ *                 type: string
+ *                 example: Trường THPT Lê Duẩn
+ *               years_of_experience:
+ *                 type: integer
+ *                 example: 20
+ *               introduction:
+ *                 type: string
+ *                 example: Giáo viên môn Toán với nhiều năm kinh nghiệm giảng dạy.
+ *               education_history:
+ *                 type: string
+ *                 example: Tốt nghiệp chuyên ngành Toán tại...
+ *               work_experience:
+ *                 type: string
+ *                 example: Đã giảng dạy tại nhiều trường...
+ *               awards:
+ *                 type: string
+ *                 example: Giáo viên dạy giỏi cấp tỉnh...
  *     responses:
  *       201:
  *         description: Tạo user thành công
@@ -212,14 +276,19 @@ router.get("/:id", userController.getUserById);
  *               properties:
  *                 message:
  *                   type: string
+ *                   example: create user success
  *                 user:
  *                   $ref: '#/components/schemas/User'
  *       400:
  *         description: Dữ liệu không hợp lệ hoặc email/username đã tồn tại
+ *       401:
+ *         description: Chưa xác thực
+ *       403:
+ *         description: Không có quyền truy cập
  *       500:
  *         description: Server error
  */
-router.post("/", userController.createUserByAdmin);
+router.post("/", uploadImageUtil.single("avatar"), userController.createUserByAdmin);
 
 /**
  * @swagger
@@ -239,18 +308,95 @@ router.post("/", userController.createUserByAdmin);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/UpdateUserInput'
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 example: nguyenvana
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: nguyenvana@gmail.com
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 example: 123456
+ *               role:
+ *                 type: string
+ *                 example: teacher
+ *               status:
+ *                 type: string
+ *                 example: active
+ *               full_name:
+ *                 type: string
+ *                 example: Nguyễn Văn A
+ *               phone:
+ *                 type: string
+ *                 example: 0123456789
+ *               address:
+ *                 type: string
+ *                 example: Hà Nội
+ *               avatar:
+ *                 type: string
+ *                 format: binary
+ *               is_verified:
+ *                 type: boolean
+ *                 example: true
+ *               job_title:
+ *                 type: string
+ *                 example: Giáo viên
+ *               academic_degree:
+ *                 type: string
+ *                 example: Cử nhân
+ *               specialization:
+ *                 type: string
+ *                 example: Toán
+ *               workplace:
+ *                 type: string
+ *                 example: Trường THPT Lê Duẩn
+ *               years_of_experience:
+ *                 type: integer
+ *                 example: 20
+ *               introduction:
+ *                 type: string
+ *                 example: Giáo viên môn Toán với nhiều năm kinh nghiệm giảng dạy.
+ *               education_history:
+ *                 type: string
+ *                 example: Tốt nghiệp chuyên ngành Toán tại...
+ *               work_experience:
+ *                 type: string
+ *                 example: Đã giảng dạy tại nhiều trường...
+ *               awards:
+ *                 type: string
+ *                 example: Giáo viên dạy giỏi cấp tỉnh...
  *     responses:
  *       200:
  *         description: Cập nhật user thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: update user success
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Dữ liệu không hợp lệ hoặc email/username đã tồn tại
+ *       401:
+ *         description: Chưa xác thực
+ *       403:
+ *         description: Không có quyền truy cập
  *       404:
  *         description: User không tồn tại
  *       500:
  *         description: Server error
  */
-router.put("/:id", userController.updateUserByAdmin);
+router.put("/:id", uploadImageUtil.single("avatar"), userController.updateUserByAdmin);
+
 
 /**
  * @swagger

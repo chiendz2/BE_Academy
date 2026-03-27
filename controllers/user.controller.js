@@ -8,50 +8,50 @@ class UserController {
     };
 
     getAllUsers = async (req, res) => {
-    try {
-        const { page = 1, limit = 10, keyword = "", role, status } = req.query;
+        try {
+            const { page = 1, limit = 10, keyword = "", role, status } = req.query;
 
-        const pageNumber = Math.max(parseInt(page) || 1, 1);
-        const limitNumber = Math.max(parseInt(limit) || 10, 1);
-        const offset = (pageNumber - 1) * limitNumber;
+            const pageNumber = Math.max(parseInt(page) || 1, 1);
+            const limitNumber = Math.max(parseInt(limit) || 10, 1);
+            const offset = (pageNumber - 1) * limitNumber;
 
-        const where = {};
+            const where = {};
 
-        if (keyword) {
-            where[Op.or] = [
-                { username: { [Op.like]: `%${keyword}%` } },
-                { email: { [Op.like]: `%${keyword}%` } },
-                { full_name: { [Op.like]: `%${keyword}%` } },
-                { phone: { [Op.like]: `%${keyword}%` } },
-            ];
+            if (keyword) {
+                where[Op.or] = [
+                    { username: { [Op.like]: `%${keyword}%` } },
+                    { email: { [Op.like]: `%${keyword}%` } },
+                    { full_name: { [Op.like]: `%${keyword}%` } },
+                    { phone: { [Op.like]: `%${keyword}%` } },
+                ];
+            }
+
+            if (role) where.role = role;
+            if (status) where.status = status;
+
+            const { count, rows } = await db.User.findAndCountAll({
+                where,
+                attributes: this.safeAttributes,
+                order: [["created_at", "DESC"]],
+                limit: limitNumber,
+                offset,
+            });
+
+            return res.status(200).json({
+                message: "get users success",
+                total: count,
+                page: pageNumber,
+                limit: limitNumber,
+                totalPages: Math.ceil(count / limitNumber),
+                users: rows,
+            });
+        } catch (error) {
+            return res.status(500).json({
+                message: "server Error",
+                error: error.message,
+            });
         }
-
-        if (role) where.role = role;
-        if (status) where.status = status;
-
-        const { count, rows } = await db.User.findAndCountAll({
-            where,
-            attributes: this.safeAttributes, 
-            order: [["created_at", "DESC"]],
-            limit: limitNumber,
-            offset,
-        });
-
-        return res.status(200).json({
-            message: "get users success",
-            total: count,
-            page: pageNumber,
-            limit: limitNumber,
-            totalPages: Math.ceil(count / limitNumber),
-            users: rows,
-        });
-    } catch (error) {
-        return res.status(500).json({
-            message: "server Error",
-            error: error.message,
-        });
-    }
-};
+    };
 
     getUserById = async (req, res) => {
         try {
@@ -63,7 +63,7 @@ class UserController {
 
             if (!user) {
                 return res.status(404).json({
-                    message: "user not found",
+                    message: "không tìm thấy người dùng",
                 });
             }
 
@@ -90,8 +90,16 @@ class UserController {
                 full_name,
                 phone,
                 address,
-                avatar,
                 is_verified,
+                job_title,
+                academic_degree,
+                specialization,
+                workplace,
+                years_of_experience,
+                introduction,
+                education_history,
+                work_experience,
+                awards,
             } = req.body;
 
             if (!username || !email || !password) {
@@ -120,6 +128,13 @@ class UserController {
                 });
             }
 
+            let avatarUrl = null;
+
+            if (req.file) {
+                const uploadResult = await uploadToCloudinary(req.file.path || req.file.buffer);
+                avatarUrl = uploadResult.secure_url;
+            }
+
             const hashedPassword = await bcrypt.hash(password, 10);
 
             const user = await db.User.create({
@@ -131,8 +146,19 @@ class UserController {
                 full_name,
                 phone,
                 address,
-                avatar,
+                avatar: avatarUrl,
                 is_verified: is_verified ?? true,
+
+                job_title,
+                academic_degree,
+                specialization,
+                workplace,
+                years_of_experience,
+                introduction,
+                education_history,
+                work_experience,
+                awards,
+
                 otp_code: null,
                 otp_expires_at: null,
                 created_at: new Date(),
@@ -140,16 +166,16 @@ class UserController {
             });
 
             const safeUser = await db.User.findByPk(user.user_id, {
-                attributes: this.safeAttributes.exclude,
+                attributes: this.safeAttributes,
             });
 
             return res.status(201).json({
-                message: "create user success",
+                message: "tạo người dùng thành công",
                 user: safeUser,
             });
         } catch (error) {
             return res.status(500).json({
-                message: "server Error",
+                message: "lỗi máy chủ",
                 error: error.message,
             });
         }
@@ -169,15 +195,27 @@ class UserController {
                 address,
                 avatar,
                 is_verified,
+
+                // thêm các trường hồ sơ giáo viên
+                job_title,
+                academic_degree,
+                specialization,
+                workplace,
+                years_of_experience,
+                introduction,
+                education_history,
+                work_experience,
+                awards,
             } = req.body;
 
             const user = await db.User.findByPk(id);
 
             if (!user) {
                 return res.status(404).json({
-                    message: "user not found",
+                    message: "không tìm thấy người dùng",
                 });
             }
+
             if (email && email !== user.email) {
                 const existingUserByEmail = await db.User.findOne({
                     where: {
@@ -185,12 +223,14 @@ class UserController {
                         user_id: { [Op.ne]: id },
                     },
                 });
+
                 if (existingUserByEmail) {
                     return res.status(400).json({
-                        message: "Email already exists",
+                        message: "email đã tồn tại",
                     });
                 }
             }
+
             if (username && username !== user.username) {
                 const existingUserByUsername = await db.User.findOne({
                     where: {
@@ -205,9 +245,11 @@ class UserController {
                     });
                 }
             }
+
             const updateData = {
                 updated_at: new Date(),
             };
+
             if (username !== undefined) updateData.username = username;
             if (email !== undefined) updateData.email = email;
             if (role !== undefined) updateData.role = role;
@@ -217,6 +259,17 @@ class UserController {
             if (address !== undefined) updateData.address = address;
             if (avatar !== undefined) updateData.avatar = avatar;
             if (is_verified !== undefined) updateData.is_verified = is_verified;
+
+            // thêm các trường còn thiếu
+            if (job_title !== undefined) updateData.job_title = job_title;
+            if (academic_degree !== undefined) updateData.academic_degree = academic_degree;
+            if (specialization !== undefined) updateData.specialization = specialization;
+            if (workplace !== undefined) updateData.workplace = workplace;
+            if (years_of_experience !== undefined) updateData.years_of_experience = years_of_experience;
+            if (introduction !== undefined) updateData.introduction = introduction;
+            if (education_history !== undefined) updateData.education_history = education_history;
+            if (work_experience !== undefined) updateData.work_experience = work_experience;
+            if (awards !== undefined) updateData.awards = awards;
 
             if (password) {
                 updateData.password = await bcrypt.hash(password, 10);
@@ -229,12 +282,12 @@ class UserController {
             });
 
             return res.status(200).json({
-                message: "update user success",
+                message: "cập nhật người dùng thành công",
                 user: updatedUser,
             });
         } catch (error) {
             return res.status(500).json({
-                message: "server Error",
+                message: "lỗi máy chủ",
                 error: error.message,
             });
         }
@@ -248,7 +301,7 @@ class UserController {
 
             if (!user) {
                 return res.status(404).json({
-                    message: "user not found",
+                    message: "không tìm thấy người dùng",
                 });
             }
 
@@ -258,11 +311,11 @@ class UserController {
             });
 
             return res.status(200).json({
-                message: "block user success",
+                message: "khóa người dùng thành công",
             });
         } catch (error) {
             return res.status(500).json({
-                message: "server Error",
+                message: "lỗi máy chủ",
                 error: error.message,
             });
         }
