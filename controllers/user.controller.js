@@ -8,50 +8,50 @@ class UserController {
     };
 
     getAllUsers = async (req, res) => {
-        try {
-            const { page = 1, limit = 10, keyword = "", role, status } = req.query;
+    try {
+        const { page = 1, limit = 10, keyword = "", role, status } = req.query;
 
-            const pageNumber = Math.max(parseInt(page) || 1, 1);
-            const limitNumber = Math.max(parseInt(limit) || 10, 1);
-            const offset = (pageNumber - 1) * limitNumber;
+        const pageNumber = Math.max(parseInt(page) || 1, 1);
+        const limitNumber = Math.max(parseInt(limit) || 10, 1);
+        const offset = (pageNumber - 1) * limitNumber;
 
-            const where = {};
+        const where = {};
 
-            if (keyword) {
-                where[Op.or] = [
-                    { username: { [Op.like]: `%${keyword}%` } },
-                    { email: { [Op.like]: `%${keyword}%` } },
-                    { full_name: { [Op.like]: `%${keyword}%` } },
-                    { phone: { [Op.like]: `%${keyword}%` } },
-                ];
-            }
-
-            if (role) where.role = role;
-            if (status) where.status = status;
-
-            const { count, rows } = await db.User.findAndCountAll({
-                where,
-                attributes: this.safeAttributes.exclude,
-                order: [["created_at", "DESC"]],
-                limit: limitNumber,
-                offset,
-            });
-
-            return res.status(200).json({
-                message: "get users success",
-                total: count,
-                page: pageNumber,
-                limit: limitNumber,
-                totalPages: Math.ceil(count / limitNumber),
-                users: rows,
-            });
-        } catch (error) {
-            return res.status(500).json({
-                message: "server Error",
-                error: error.message,
-            });
+        if (keyword) {
+            where[Op.or] = [
+                { username: { [Op.like]: `%${keyword}%` } },
+                { email: { [Op.like]: `%${keyword}%` } },
+                { full_name: { [Op.like]: `%${keyword}%` } },
+                { phone: { [Op.like]: `%${keyword}%` } },
+            ];
         }
-    };
+
+        if (role) where.role = role;
+        if (status) where.status = status;
+
+        const { count, rows } = await db.User.findAndCountAll({
+            where,
+            attributes: this.safeAttributes, 
+            order: [["created_at", "DESC"]],
+            limit: limitNumber,
+            offset,
+        });
+
+        return res.status(200).json({
+            message: "get users success",
+            total: count,
+            page: pageNumber,
+            limit: limitNumber,
+            totalPages: Math.ceil(count / limitNumber),
+            users: rows,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            message: "server Error",
+            error: error.message,
+        });
+    }
+};
 
     getUserById = async (req, res) => {
         try {
