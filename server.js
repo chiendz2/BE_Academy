@@ -24,13 +24,13 @@ app.use((req, res) => {
     });
 });
 
-db.sequelize.sync({ alter: true }) // Sử dụng { force: true } để xóa và tạo lại bảng
-    .then(() => {
-        console.log('Database & tables created!');
-    })
-    .catch(err => {
-        console.error('Error syncing database:', err);
-    });
+// db.sequelize.sync({ alter: true }) // Sử dụng { force: true } để xóa và tạo lại bảng
+//     .then(() => {
+//         console.log('Database & tables created!');
+//     })
+//     .catch(err => {
+//         console.error('Error syncing database:', err);
+//     });
 
 app.use((err, req, res, next) => {
     console.error(err);
